@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 const { CommentRepository, LikeRepository, DislikeRepository } = require('../Database')
 const logger = require('../Utils/logger')
-const { publishMemoryEvent } = require('../Utils/events')
+const { RPCrequest } = require('../Utils/events')
 
 // All Business logic will be here
 class ReactionsService {
@@ -46,7 +46,7 @@ class ReactionsService {
         const prevLike = await this.likeRepository.findAndDelete({ userid, memoryid })
         if (prevLike) {
             // removing the like from the memory
-            await publishMemoryEvent({ event: 'REMOVE_LIKE', data: { memoryid } })
+            await RPCrequest(process.env.MEMORIES_BINDING_KEY, JSON.stringify({ event: 'REMOVE_LIKE', data: { memoryid } }))
             const message = 'removed the like'
             return message
         }
@@ -55,12 +55,12 @@ class ReactionsService {
         const prevDislike = await this.dislikeRepository.findAndDelete({ userid, memoryid })
         if (prevDislike) {
         // removing the dislike from the memory
-            await publishMemoryEvent({ event: 'REMOVE_DISLIKE', data: { memoryid } })
+            await RPCrequest(process.env.MEMORIES_BINDING_KEY, JSON.stringify({ event: 'REMOVE_DISLIKE', data: { memoryid } }))
             const message = 'removed the dislike'
             return message
         }
 
-        await publishMemoryEvent({ event: 'ADD_LIKE', data: { memoryid } })
+        await RPCrequest(process.env.MEMORIES_BINDING_KEY, JSON.stringify({ event: 'ADD_LIKE', data: { memoryid } }))
         const newLike = await this.likeRepository.createLike({ userid, memoryid })
         return newLike
     }
@@ -72,7 +72,7 @@ class ReactionsService {
         const prevDislike = await this.dislikeRepository.findAndDelete({ userid, memoryid })
         if (prevDislike) {
             // removing the dislike from the memory
-            await publishMemoryEvent({ event: 'REMOVE_DISLIKE', data: { memoryid } })
+            await RPCrequest(process.env.MEMORIES_BINDING_KEY, JSON.stringify({ event: 'REMOVE_DISLIKE', data: { memoryid } }))
             const message = 'removed the dislike'
             return message
         }
@@ -81,12 +81,12 @@ class ReactionsService {
         const prevLike = await this.likeRepository.findAndDelete({ userid, memoryid })
         if (prevLike) {
             // removing the like from the memory
-            await publishMemoryEvent({ event: 'REMOVE_LIKE', data: { memoryid } })
+            await RPCrequest(process.env.MEMORIES_BINDING_KEY, JSON.stringify({ event: 'REMOVE_LIKE', data: { memoryid } }))
             const message = 'removed the like'
             return message
         }
 
-        await publishMemoryEvent({ event: 'ADD_DISLIKE', data: { memoryid } })
+        await RPCrequest(process.env.MEMORIES_BINDING_KEY, JSON.stringify({ event: 'ADD_DISLIKE', data: { memoryid } }))
         const newDislike = await this.dislikeRepository.createDislike({ userid, memoryid })
         return newDislike
     }
@@ -104,6 +104,7 @@ class ReactionsService {
     async SubscribeEvents (payload) {
         logger.info('============= Triggering Reactions Events =============')
 
+        payload = JSON.parse(payload)
         const { event, data } = payload
 
         const { memoryid, userid } = data
