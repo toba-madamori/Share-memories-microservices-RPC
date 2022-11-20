@@ -2,13 +2,14 @@
 const MemoryService = require('../../Services/memories')
 const { StatusCodes } = require('http-status-codes')
 const { newMemorySchema, idSchema, updateMemorySchema, searchSchema } = require('../../Utils/validators')
-const { publishReactionEvent } = require('../../Utils/events')
+const { RPCrequest, RPCobserver } = require('../../Utils/events')
 const validator = require('express-joi-validation').createValidator({})
 const upload = require('../../Utils/multer')
 const authMiddleware = require('../Middleware/authentication')
 
 module.exports = (app) => {
     const service = new MemoryService()
+    RPCobserver(service)
 
     app.post('/new', authMiddleware, upload.single('memory'), validator.body(newMemorySchema), async (req, res) => {
         const { title, tags } = req.body
@@ -38,9 +39,9 @@ module.exports = (app) => {
 
         const memory = await service.getMemory({ memoryid })
         // call to reactions-service for memory-comments
-        const response = await publishReactionEvent({ event: 'GET_COMMENTS', data: { memoryid } })
+        const response = await RPCrequest(process.env.REACTION_BINDING_KEY, JSON.stringify({ event: 'GET_COMMENTS', data: { memoryid } }))
 
-        res.status(StatusCodes.OK).json({ status: 'success', memory, comments: response.data.data })
+        res.status(StatusCodes.OK).json({ status: 'success', memory, comments: response })
     })
 
     app.patch('/update/:id', authMiddleware, upload.single('memory'), validator.params(idSchema), validator.body(updateMemorySchema), async (req, res) => {
