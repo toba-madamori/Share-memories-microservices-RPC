@@ -3,7 +3,7 @@ const { MemoryRepository } = require('../Database')
 const cloudinary = require('../Utils/cloudinary')
 const { BadRequestError } = require('../Errors')
 const logger = require('../Utils/logger')
-const { publishReactionEvent } = require('../Utils/events')
+const { RPCrequest } = require('../Utils/events')
 
 // All Business logic will be here
 class MemoryService {
@@ -126,7 +126,7 @@ class MemoryService {
         const memories = await this.repository.findAll({ userid })
         for await (const memory of memories) {
             Promise.all([
-                await publishReactionEvent({ event: 'DELETE_COMMENTS_MEMORYID', data: { memoryid: memory._id } }),
+                await RPCrequest(process.env.REACTION_BINDING_KEY, JSON.stringify({ event: 'DELETE_COMMENTS_MEMORYID', data: { memoryid: memory._id } })),
                 await cloudinary.uploader.destroy(memory.cloudinary_id),
                 await this.repository.deleteOne({ memoryid: memory._id })
             ])
@@ -136,6 +136,7 @@ class MemoryService {
     async SubscribeEvents (payload) {
         logger.info('============= Triggering Memory Events =============')
 
+        payload = JSON.parse(payload)
         const { event, data } = payload
 
         const { memoryid, userid } = data
