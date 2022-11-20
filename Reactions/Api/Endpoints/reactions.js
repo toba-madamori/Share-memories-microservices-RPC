@@ -4,9 +4,11 @@ const { StatusCodes } = require('http-status-codes')
 const { newCommentSchema, idSchema } = require('../../Utils/validators')
 const validator = require('express-joi-validation').createValidator({})
 const authMiddleware = require('../Middleware/authentication')
+const { RPCobserver } = require('../../Utils/events')
 
 module.exports = (app) => {
     const service = new ReactionsService()
+    RPCobserver(service)
 
     app.post('/comment/new/:id', authMiddleware, validator.params(idSchema), validator.body(newCommentSchema), async (req, res) => {
         let { comment } = req.body
