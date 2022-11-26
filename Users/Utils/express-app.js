@@ -6,7 +6,6 @@ require('express-async-errors')
 const express = require('express')
 const app = express()
 const userApi = require('../Api/Endpoints/users')
-const appEvents = require('../Api/Endpoints/app-events')
 
 // extra security packages
 const cors = require('cors')
@@ -35,9 +34,6 @@ app.get('/', (req, res) => {
 })
 
 // routes
-
-// listen to events
-appEvents(app)
 
 // memory api
 userApi(app)
