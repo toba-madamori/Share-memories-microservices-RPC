@@ -127,6 +127,7 @@ class UserService {
     async SubscribeEvents (payload) {
         logger.info('============= Triggering Auth Events =============')
 
+        payload = JSON.parse(payload)
         const { event, data } = payload
 
         const { userid, name, email, status, avatar } = data
