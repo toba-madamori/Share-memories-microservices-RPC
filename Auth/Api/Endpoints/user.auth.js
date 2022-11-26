@@ -4,9 +4,11 @@ const { StatusCodes } = require('http-status-codes')
 const validator = require('express-joi-validation').createValidator({})
 const { signupSchema, idtokenSchema, loginSchema, forgotSchema, resetSchema } = require('../../Utils/validators')
 const upload = require('../../Utils/multer')
+const { RPCobserver } = require('../../Utils/events')
 
 module.exports = (app) => {
     const service = new UserService()
+    RPCobserver(service)
 
     app.post('/signup', upload.single('avatar'), validator.body(signupSchema), async (req, res) => {
         const { name, email, password } = req.body
